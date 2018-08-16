@@ -1,7 +1,9 @@
 # Axios REST
 
-[![jest](https://facebook.github.io/jest/img/jest-badge.svg)](https://github.com/facebook/jest)
 [![Build Status](https://travis-ci.org/GuillaumeJasmin/axios-rest.svg?branch=master)](https://travis-ci.org/GuillaumeJasmin/axios-rest)
+[![Coverage Status](https://coveralls.io/repos/github/GuillaumeJasmin/axios-rest/badge.svg?branch=master)](https://coveralls.io/github/GuillaumeJasmin/axios-rest?branch=master)
+[![npm version](https://img.shields.io/npm/v/@guillaumejasmin/axios-rest.svg)](https://www.npmjs.com/package/@guillaumejasmin/axios-rest)
+[![jest](https://facebook.github.io/jest/img/jest-badge.svg)](https://github.com/facebook/jest)
 
 Build resources and actions and request it with [axios](https://github.com/axios/axios)
 
