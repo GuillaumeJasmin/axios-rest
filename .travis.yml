@@ -5,6 +5,7 @@ node_js:
 script:
   - yarn test
   - yarn build
+  - npx jest --coverage && cat ./coverage/lcov.info | npx coveralls && rm -rf ./coverage
 
 cache:
   yarn: true
