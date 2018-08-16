@@ -1,9 +1,12 @@
 {
-  "name": "axios-rest",
+  "name": "@guillaumejasmin/axios-rest",
   "version": "0.1.0",
   "description": "Axios Rest - Tool for build REST resources with axios",
   "main": "cjs/index.js",
   "module": "es/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "npx rollup -c",
     "build-watch": "npx rollup -c --watch",
@@ -15,7 +18,11 @@
     "type": "git",
     "url": "https://github.com/guillaumejasmin/axios-rest.git"
   },
-  "files": [],
+  "files": [
+    "es",
+    "cjs",
+    "dist"
+  ],
   "keywords": [],
   "author": "Guillaume Jasmin (http://github.com/guillaumejasmin)",
   "license": "MIT",
