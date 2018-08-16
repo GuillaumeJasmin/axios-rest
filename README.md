@@ -1,5 +1,6 @@
 # Axios REST
 
+[![jest](https://facebook.github.io/jest/img/jest-badge.svg)](https://github.com/facebook/jest)
 [![Build Status](https://travis-ci.org/GuillaumeJasmin/axios-rest.svg?branch=master)](https://travis-ci.org/GuillaumeJasmin/axios-rest)
 
 Build resources and actions and request it with [axios](https://github.com/axios/axios)
