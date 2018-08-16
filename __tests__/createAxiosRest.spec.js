@@ -100,6 +100,12 @@ describe('createAxiosRest', () => {
       url: '/post',
     })
 
+    api.posts(1).fetch()
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'get',
+      url: '/post/1',
+    })
+
     api.posts({ name: 'Bob' }).create()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'post',
