@@ -5,17 +5,60 @@
 [![npm version](https://img.shields.io/npm/v/@guillaumejasmin/axios-rest.svg)](https://www.npmjs.com/package/@guillaumejasmin/axios-rest)
 [![jest](https://facebook.github.io/jest/img/jest-badge.svg)](https://github.com/facebook/jest)
 
-Build resources and actions and request it with [axios](https://github.com/axios/axios)
+Build resources and actions for [axios](https://github.com/axios/axios)
 
-<!-- ## Documentation
-* [Install](#install)
-* [Resources](#resources)
-  * [Format](#format)
-  * [Resource example](#resource-example)
-  * [Sub resources and actions](#sub-resources-and-actions)
-* [Actions](#actions)
-  * [Format](#format)
-  * [Action example](#action-example) -->
+## What is a resource ?
+
+A resources is a REST endpoint, with CRUD methods, like `fetch`, `create`, `update` and `delete`.
+Example of `posts` resource:
+<!-- ```
+GET /posts
+GET /posts/1
+POST /posts
+UPDATE /posts/1
+DELETE /posts/1
+``` -->
+
+| method | URL | description |
+|:-------|:------|:------|
+|GET| `/posts` |fetch all post|
+|GET| `/posts/1` |fetch one post|
+|POST| `/posts` |create post| 
+|PATCH / PUT| `/posts/1` |update post| 
+|DELETE| `/posts/1` |delete post|
+
+
+A resource can have sub resources
+
+<!-- ```
+GET /posts/1/comments
+POST /posts/1/comments
+``` -->
+
+| method | URL | description |
+|:-------|:------|:------|
+|GET| `/posts/1/comments` | fetch all comment of post 1 |
+|POST| `/posts/1/comments` | create a comment of post 1 |
+
+## What is an action ?
+
+An action is a single endpoint. The most know action is `login`
+
+| method | URL | description |
+|:-------|:------|:------|
+| POST | `/login` | login to admin panel |
+| POST | `/logout` | logout from admin panel |
+
+## Action into resource ?
+A resource can also have custom actions
+
+| method | URL | description |
+|:-------|:------|:------|
+| POST | `/comments/1/like` | add a like to the comment 1 |
+| POST | `/comments/1/unlike` | remove a like to the comment 1 |
+
+## How Axios REST can help me ?
+Axios REST make possible to build resources and actions, and interact with your back-end through [axios](https://github.com/axios/axios)
 
 
 ## Install
@@ -23,7 +66,7 @@ Build resources and actions and request it with [axios](https://github.com/axios
 npm install @guillaumejasmin/axios-rest --save
 ```
 
-## Simple example
+## Config example
 ```js
 import axios from 'axios'
 import createAxiosRest from 'axios-rest'
@@ -33,96 +76,51 @@ const axiosInst = axios.create({
 })
 
 const config = {
+  // Resources
   resources: {
-    posts: {
-      url: 'posts',
+    post: {
+      uri: 'post',
+      resources: {
+        comments: {
+          uri: 'comments'
+        }
+      }
     },
+    comments: {
+      uri: 'comments',
+      actions: {
+        like: {
+          uri: 'like',
+          method: 'POST'
+        },
+        unlike: {
+          uri: 'unlike',
+          method: 'POST'
+        }
+      }
+    }
   },
+  // Actions
+  actions: {
+    login: {
+      uri: 'login',
+      method: 'POST'
+    },
+    logout: {
+      uri: 'logout',
+      method: 'POST'
+    }
+  }
 }
 
 const api = createAxiosRest(axiosInst, config)
-
-// GET /posts
-api.posts().fetch().then(res => console.log(res.data))
-
-// POST /posts
-api.posts({ title: '...' }).create()
-
 ```
 
-## createAxiosRest()
-
-`createAxiosRest(axiosInst, config)`
-
-* `axiosInst` - Axios Instance - required - create with `axios.create()` . See [Axios documentation](https://github.com/axios/axios#axioscreateconfig)
-
-* `config` - object - required
-  * `resources` - object - optional - list of resources
-  * `actions` - object - optional - list of actions
-  * `idKey` - string - optional. Default `id`
-
-`createAxiosRest` return an object, with resources and actions. Both are function and take `data` as paramaters
+Then, you can now interact with your resources and actions. Each action return `axios.request()`, so it's a `Promise`
 
 ## Resources
 
-### Format
-
 ```js
-api.resourceName(data).methodName(axiosConfig)
-```
-* `resourceName` - name of your resource
-* `data` object | string | number - body request or id into url path 
-* `methodName` - correspond to `fetch`, `create`, `update`, `delete`, or a custom method
-* `axiosConfig` object - optional - It correspond to config of `axios.request(config)`. Usefull for header, params, etc.
-
-Each action return the Promise of `axios.request()`
-
-* #### fetch
-```js
-api.resourceName(data).fetch()
-```
-data type: `string`, `number`, `undefined`
-
-* #### create
-```js
-api.resourceName(data).create()
-```
-data type: `object`, `array`
-
-* #### update
-```js
-api.resourceName(data).update() // PATCH
-api.resourceName(data).update({method: 'put'}) // PUT
-```
-data type: `object`, `array`
-
-
-* #### delete
-```js
-api.resourceName(data).delete()
-```
-data type: `string`, `number`, `array`
-
-### Resource example
-
-```js
-import axios from 'axios'
-import createAxiosRest from 'axios-rest'
-
-const axiosInst = axios.create({
-  baseURL: 'http://api.website.com',
-})
-
-const config = {
-  resources: {
-    posts: {
-      url: 'posts',
-    },
-  },
-}
-
-const api = createAxiosRest(axiosInst, config)
-
 // GET /posts
 api.posts().fetch().then(res => console.log(res.data))
 
@@ -142,84 +140,78 @@ api.posts({ id: 1, title: '...' }).update({ method: 'put' })
 api.posts(1).delete()
 ```
 
-### Sub resources and actions
-Each resources can have sub resources and actions
+## Actions
 
 ```js
-import axios from 'axios'
-import createAxiosRest from 'axios-rest'
-
-const axiosInst = axios.create({
-  baseURL: 'http://api.website.com',
+api.login({ email: '...', password: '...' }).then((res) => {
+  // success login
 })
+```
 
-const config = {
-  resources: {
-    posts: {
-      url: 'posts',
-      resources: {
-        comments: {
-          uri: 'comments'
-        }
-      },
-      actions: {
-        fetchMostRead: {
-          uri: 'most-read',
-          method: 'POST'
-        }
-      }
-    },
-  },
-}
+## Sub resources ans actions
 
-const api = createAxiosRest(axiosInst, config)
-
+```js
 // GET /posts/1/comments
 api.posts(1).comments().fetch()
 
 // POST /posts/1/comments
 api.posts(1).comments({ author: '...', text: 'Amazing article !' }).create()
 
-// GET /posts/most-read
-api.posts().fetchMostRead();
-
+// GET /comments/1/like
+api.comments(1).like();
 ```
 
+## createAxiosRest(axiosInst, config)
 
-## Actions
-Actions are like resources, but without CRUD methods. You need to defined a `method` for an action
+`createAxiosRest(axiosInst, config)`
 
-### Format
+* `axiosInst` - Axios Instance - required - create with `axios.create()` . See [Axios documentation](https://github.com/axios/axios#axioscreateconfig)
 
-```js
-api.actionName(data, axiosConfig)
-```
-* `actionName` - name of your custom action
-* `data` object | string | number - body request or id into url path 
-* `axiosConfig` object - optional - It correspond to config of `axios.request(config)`. Usefull for header, params, etc.
+* `config` - object - required
 
-### Action example
+### Config
+* `idKey` - string - optional. Default `id`
+* `resources` - object - optional - list of resources
+  ```js
+  {
+    // correspond to the chunk of URL
+    uri: 'post',
 
-```js
-import axios from 'axios'
-import createAxiosRest from 'axios-rest'
+    // sub resources
+    resources: {},
 
-const axiosInst = axios.create({
-  baseURL: 'http://api.website.com',
-})
-
-const config = {
-  resources: {},
-  actions: {
-    login: {
-      uri: 'login',
-      method: 'POST'
-    }
+    // sub actions
+    actions: {}
   }
-}
+  ```
 
-const api = createAxiosRest(axiosInst, config)
+* `actions` - object - optional - list of actions  
+  ```js
+  {
+    // correspond to the chunk of URL
+    uri: 'login',
 
-api.login({ email: '...', password: '...' })
+    // HTTP method
+    // GET POST PATCH PUT DELETE
+    method: 'POST',
+  }
+  ```
 
+
+## Data type
+
+Each CRUD action correspond to a data type. For example, you cannot dot this:
+```js
+api.posts(true).fetch()
 ```
+
+because post data must be a `string` or `number` or `undefined` with `fetch()` action
+
+List of allow data for each actions
+
+| method | data type |
+|:-------|:------|
+| fetch | `string`, `number`, `undefined` |
+| create | `object`, `array` |
+| update | `object`, `array` |
+| delete | `string`, `array` |
