@@ -49,9 +49,7 @@ const createResource = (
           isBatch = true
           outputData = data
         } else {
-          throw new Error(
-            `update(data) error: data of type '${typeof data}' is invalid. It must be Object or Array`,
-          )
+          // it can't be other type of data
         }
 
         const url = isBatch ? fullResourceURI : `${fullResourceURI}/${itemId}`

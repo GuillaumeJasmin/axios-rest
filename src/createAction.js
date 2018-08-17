@@ -23,7 +23,7 @@ const createAction = (
 
   return axiosInst.request({
     ...axiosConfig,
-    method: action.method,
+    method: action.method.toLowerCase(),
     data: outputData,
     url,
   })

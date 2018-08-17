@@ -9,7 +9,7 @@ const createAxiosInst = () => ({
 const config = {
   resources: {
     posts: {
-      uri: 'post',
+      uri: 'posts',
       resources: {
         authors: {
           uri: 'authors',
@@ -85,9 +85,12 @@ describe('createAxiosRest', () => {
 
     api.posts().fetch()
     api.posts({}).create()
+    api.posts([]).create()
     api.posts({}).update()
+    api.posts([]).update()
     api.posts(2).delete()
-    expect(axiosInst.request).toHaveBeenCalledTimes(4)
+    api.posts([]).delete()
+    expect(axiosInst.request).toHaveBeenCalledTimes(7)
   })
 
   it('should trigger axios request with good params', () => {
@@ -97,19 +100,19 @@ describe('createAxiosRest', () => {
     api.posts().fetch()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
-      url: '/post',
+      url: '/posts',
     })
 
     api.posts(1).fetch()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
-      url: '/post/1',
+      url: '/posts/1',
     })
 
     api.posts({ name: 'Bob' }).create()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'post',
-      url: '/post',
+      url: '/posts',
       data: {
         name: 'Bob',
       },
@@ -118,7 +121,7 @@ describe('createAxiosRest', () => {
     api.posts({ id: 1, name: 'Bob' }).update()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'patch',
-      url: '/post/1',
+      url: '/posts/1',
       data: {
         name: 'Bob',
       },
@@ -127,7 +130,49 @@ describe('createAxiosRest', () => {
     api.posts(1).delete()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'delete',
-      url: '/post/1',
+      url: '/posts/1',
     })
+
+    api
+      .posts(1)
+      .authors()
+      .fetch()
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'get',
+      url: '/posts/1/authors',
+    })
+
+    api.posts().myCustomAction()
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'get',
+      url: '/posts/custom-action',
+      data: {},
+    })
+
+    api.posts(1).myCustomAction()
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'get',
+      url: '/posts/1/custom-action',
+      data: {},
+    })
+  })
+
+  it('shloud throw an error if we use a reserved action name', () => {
+    const axiosInst = createAxiosInst()
+    const api = createAxiosRest(axiosInst, {
+      resources: {
+        posts: {
+          resources: {
+            fetch: {
+              uri: 'fetch',
+            },
+          },
+        },
+      },
+    })
+
+    expect(() => api.posts('')).toThrowError(
+      `axios-rest: fetch is a reserve action, you can't use it as resource name`,
+    )
   })
 })
