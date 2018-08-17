@@ -1,6 +1,6 @@
 {
   "name": "@guillaumejasmin/axios-rest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Axios Rest - Tool for build REST resources with axios",
   "main": "cjs/index.js",
   "module": "es/index.js",
