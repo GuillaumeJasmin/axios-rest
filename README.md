@@ -9,7 +9,7 @@ Build resources and actions for [axios](https://github.com/axios/axios)
 
 ## What is a resource ?
 
-A resources is a REST endpoint, with CRUD methods, like `fetch`, `create`, `update` and `delete`.
+A resource is a REST endpoint, with CRUD methods, like `fetch`, `create`, `update` and `delete`.
 Example of `posts` resource:
 <!-- ```
 GET /posts
@@ -30,11 +30,6 @@ DELETE /posts/1
 
 A resource can have sub resources
 
-<!-- ```
-GET /posts/1/comments
-POST /posts/1/comments
-``` -->
-
 | method | URL | description |
 |:-------|:------|:------|
 |GET| `/posts/1/comments` | fetch all comment of post 1 |
@@ -50,6 +45,7 @@ An action is a single endpoint. The most know action is `login`
 | POST | `/logout` | logout from admin panel |
 
 ## Action into resource ?
+
 A resource can also have custom actions
 
 | method | URL | description |
@@ -116,7 +112,7 @@ const config = {
 const api = createAxiosRest(axiosInst, config)
 ```
 
-Then, you can now interact with your resources and actions. Each action return `axios.request()`, so it's a `Promise`
+Then, you can interact with your resources and actions. Each action return `axios.request()`, so it's a `Promise`
 
 ## Resources
 
@@ -205,7 +201,7 @@ Each CRUD action correspond to a data type. For example, you cannot dot this:
 api.posts(true).fetch()
 ```
 
-because post data must be a `string` or `number` or `undefined` with `fetch()` action
+because post data with `fetch()` must be an id (`string` or `number`) or `undefined`
 
 List of allow data for each actions
 
