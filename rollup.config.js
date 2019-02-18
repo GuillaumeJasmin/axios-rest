@@ -1,30 +1,32 @@
-import babel from 'rollup-plugin-babel'
+import typescript from 'rollup-plugin-typescript2'
 import pkg from './package.json'
 
-const externals = [
-  ...Object.keys(pkg.dependencies || {}),
-  ...Object.keys(pkg.peerDependencies || {}),
-]
-
-const makeExternalPredicate = externalsArr => {
-  if (externalsArr.length === 0) {
-    return () => false
-  }
-  const externalPattern = new RegExp(`^(${externalsArr.join('|')})($|/)`)
-  return id => externalPattern.test(id)
-}
-
-export default {
-  input: 'src/index.js',
-  external: makeExternalPredicate(externals),
+const rollupConfig = {
+  input: 'src/index.ts',
+  output: [
+    {
+      file: pkg.main,
+      format: 'cjs',
+    },
+    {
+      file: pkg.module,
+      format: 'es',
+    },
+    {
+      file: pkg.umd,
+      name: 'AxiosRest',
+      format: 'umd',
+    },
+  ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+  ],
   plugins: [
-    babel({
-      exclude: 'node_modules/**',
+    typescript({
+      typescript: require('typescript'),
     }),
   ],
-  output: [
-    { file: pkg.main, format: 'cjs' },
-    { file: pkg.module, format: 'es' },
-    { file: 'dist/axios-rest.js', name: 'AxiosRest', format: 'iife' },
-  ],
 }
+
+export default rollupConfig

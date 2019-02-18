@@ -1,25 +1,23 @@
-/* global describe, it, expect, global */
-
-import createAction from '../src/createAction'
+import { createAction } from '../src/createAction'
 
 const createAxiosInst = () => ({
-  request: jest.fn(data => data),
+  request: (data: any) => data,
 })
 
 describe('createAction', () => {
   it('should throw an error if action is undefined', () => {
+    // @ts-ignore
     const action = createAction({}, { method: 'foo' })
-    expect(() => action({})).toThrowError()
+    expect(() => action({})).toThrow()
   })
 
   it('should return correct data', () => {
-    const action = createAction(createAxiosInst(), {
-      method: 'GET',
+    const action = createAction(createAxiosInst() as any, {
+      method: 'get',
       uri: 'foo',
     })
 
     expect(action()).toEqual({
-      data: {},
       method: 'get',
       url: '/foo',
     })

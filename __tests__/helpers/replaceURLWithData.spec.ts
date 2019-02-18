@@ -1,6 +1,4 @@
-/* global describe, it, expect, global */
-
-import replaceURLWithData from '../src/replaceURLWithData'
+import { replaceURLWithData } from '../../src/helpers'
 
 describe('replaceURLWithData', () => {
   it('should have correct URL', () => {
@@ -44,5 +42,17 @@ describe('replaceURLWithData', () => {
     ).toThrowError(
       `badIdKey is not defined in\n${JSON.stringify(dataInput, null, 4)}`,
     )
+  })
+
+  it('should works if data key is undefined but optional', () => {
+    const dataInput = {
+      id: '2',
+      name: 'Bob',
+    }
+
+    const { data, url } = replaceURLWithData('foo/:?badIdKey', dataInput)
+
+    expect(url).toEqual('foo')
+    expect(data).toEqual(dataInput)
   })
 })

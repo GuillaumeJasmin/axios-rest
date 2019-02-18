@@ -2,27 +2,30 @@
   "name": "@guillaumejasmin/axios-rest",
   "version": "0.1.1",
   "description": "Axios Rest - Tool for build REST resources with axios",
-  "main": "cjs/index.js",
-  "module": "es/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "umd": "dist/axios-rest.js",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "npx rollup -c",
-    "build-watch": "npx rollup -c --watch",
-    "clean-build": "rm -rf cjs es dist",
-    "test": "npx flow && npx jest --coverage",
-    "test-dev": "npx flow && npx jest --verbose"
+    "build": "yarn clean-build && yarn test:eslint && yarn test && npx rollup -c",
+    "build:watch": "npx rollup -cw",
+    "clean-build": "rm -rf dist",
+    "test": "yarn test:jest && yarn test:eslint",
+    "test:dev": "yarn test:jest:dev && yarn test:eslint",
+    "test:jest": "npx jest --verbose --coverage",
+    "test:jest:dev": "npx jest --verbose",
+    "test:eslint": "npx eslint --max-warnings 0 --ext .ts src/ __tests__/"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/guillaumejasmin/axios-rest.git"
   },
-  "files": [
-    "es",
-    "cjs",
-    "dist"
-  ],
   "keywords": [],
   "author": "Guillaume Jasmin (http://github.com/guillaumejasmin)",
   "license": "MIT",
@@ -31,25 +34,28 @@
   },
   "homepage": "https://github.com/guillaumejasmin/axios-rest",
   "devDependencies": {
-    "@babel/cli": "^7.0.0-rc.1",
-    "@babel/core": "^7.0.0-rc.1",
-    "@babel/plugin-external-helpers": "^7.0.0-rc.1",
-    "@babel/plugin-syntax-object-rest-spread": "^7.0.0-rc.1",
-    "@babel/plugin-transform-modules-commonjs": "^7.0.0-rc.1",
-    "@babel/preset-env": "^7.0.0-rc.1",
-    "@babel/preset-flow": "^7.0.0-rc.1",
-    "babel-core": "^7.0.0-0",
-    "babel-jest": "^23.4.2",
+    "@types/jest": "^24.0.6",
+    "@types/lodash": "^4.14.121",
+    "@typescript-eslint/eslint-plugin": "^1.4.0",
+    "@typescript-eslint/parser": "^1.4.0",
     "coveralls": "^3.0.2",
     "cross-env": "^5.2.0",
     "eslint": "^5.3.0",
-    "flow-bin": "^0.78.0",
-    "jest": "^23.5.0",
-    "rollup-plugin-babel": "^4.0.0-beta.8",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^4.0.0",
+    "eslint-import-resolver-typescript": "^1.1.1",
+    "eslint-plugin-import": "^2.16.0",
+    "jest": "23.6.0",
+    "rollup": "^1.2.1",
     "rollup-plugin-commonjs": "^9.1.5",
-    "rollup-plugin-node-resolve": "^3.3.0"
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-typescript2": "^0.19.2",
+    "ts-jest": "^23.10.5",
+    "tslib": "^1.9.3",
+    "typescript": "^3.3.3"
   },
-  "dependencies": {
-    "lodash": "^4.17.10"
+  "dependencies": {},
+  "peerDependencies": {
+    "axios": "^0.18.0"
   }
 }
