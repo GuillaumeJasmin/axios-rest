@@ -1,32 +1,4 @@
-// import { createAxiosRest } from './createAxiosRest'
+import { AxiosRest } from './AxiosRest'
 
-export { createAxiosRest as default } from './createAxiosRest'
-
-// const config = {
-//   defaultResourcesActions: {
-//     www: {
-//       uri: 'www',
-//       method: 'get',
-//     },
-//   },
-//   resources: {
-//     a: {
-//       uri: 'a',
-//       actions: {
-//         e: {
-//           uri: 'e',
-//           method: 'get',
-//         },
-//       },
-//     },
-//   },
-//   actions: {
-//     b: {
-//       uri: 'b',
-//       method: 'get',
-//     },
-//   },
-// }
-
-// const api = createAxiosRest({} as any, config)
-// api.a().www()
+export * from './CRUDActions'
+export const createAxiosRest = AxiosRest.create

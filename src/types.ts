@@ -10,85 +10,61 @@ export type DataType =
   | number[]
   | object[]
 
-type URI = string | ((id?: string | number, data?: DataType) => string | number)
+export type ID = string | number
 
-export interface Action {
+type URI = string | ((id?: ID, data?: DataType) => string)
+
+export interface ActionConfig {
   uri: URI
   method: string
-  allowDataType?: DataTypeStr[]
   axiosRequestConfig?: AxiosRequestConfig
 }
 
-export interface Actions {
-  [actionName: string]: Action
+export interface ListActionsConfig {
+  [actionName: string]: ActionConfig
 }
 
-export interface Resource {
+export interface ResourceConfig {
   uri: URI
-  resources?: Resources
-  actions?: Actions
+  resources?: ListResourcesConfig
+  actions?: ListActionsConfig
 }
 
-export interface Resources {
-  [resourceName: string]: Resource
+export interface ListResourcesConfig {
+  [resourceName: string]: ResourceConfig
 }
 
 export interface AxiosRestConfig {
-  resources?: Resources
-  actions?: Actions
-  defaultResourcesActions?: Actions
+  resources?: ListResourcesConfig
+  actions?: ListActionsConfig
+  globalResourceActions?: ListActionsConfig
   idKey?: string
 }
-
-// interface CRUDAction<T = void> {
-//   (axiosRequestConfig?: AxiosRequestConfig): Promise<AxiosResponse<T>>
-// }
-
-// interface ResourceInstFetchAll {
-//   fetch: CRUDAction<object[]>
-// }
-// interface ResourceInstFetchOneOrDelete {
-//   fetch: CRUDAction<object>
-//   delete: CRUDAction
-// }
-// interface ResourceInstCreateOrUpdate {
-//   create: CRUDAction<object>
-//   update: CRUDAction<object>
-// }
-
-// export type ResourceInst = <T = void>(
-//   data?: T,
-// ) => T extends string
-//   ? ResourceInstFetchOneOrDelete
-//   : T extends number
-//   ? ResourceInstFetchOneOrDelete
-//   : T extends object
-//   ? ResourceInstCreateOrUpdate
-//   : ResourceInstFetchAll
 
 export interface ActionInst {
   (data?: DataType, localAxiosRequestConfig?: AxiosRequestConfig): AxiosPromise
 }
 
-export type ResourceInst<R extends Resource, C extends AxiosRestConfig> = (
-  data?: DataType,
-) => ResourcesListInst<R['resources'], C> &
-  ActionsResourceInst<R['actions']> &
-  ActionsResourceInst<C['defaultResourcesActions']>
+export type ResourceInst<
+  R extends ResourceConfig,
+  C extends AxiosRestConfig
+> = (
+  id?: ID,
+) => ListResourcesInst<R['resources'], C> &
+  ListActionsInst<R['actions']> &
+  ListActionsInst<C['globalResourceActions']>
 
-export type ResourcesListInst<
-  R extends Resources,
+export type ListResourcesInst<
+  R extends ListResourcesConfig,
   C extends AxiosRestConfig
 > = { [X in keyof R]: ResourceInst<R[X], C> }
 
-export type ActionsResourceInst<A extends Actions> = {
-  [X in keyof A]: (config?: AxiosRequestConfig) => AxiosPromise
+export type ListActionsInst<A extends ListActionsConfig> = {
+  [X in keyof A]: ActionInst
 }
 
-export type ActionsListInst<A extends Actions> = { [X in keyof A]: ActionInst }
-
-export type AxiosRestInst<Config extends AxiosRestConfig> = ResourcesListInst<
+export type AxiosRestInst<Config extends AxiosRestConfig> = ListResourcesInst<
   Config['resources'],
   Config
 > &
-  ActionsListInst<Config['actions']>
+  ListActionsInst<Config['actions']>

@@ -1,16 +1,15 @@
-import { AxiosRestConfig } from '../src/types'
-import { createAxiosRest } from '../src/createAxiosRest'
+import { createAxiosRest, CRUDActions } from '../src/index'
 
 const createAxiosInst = () => ({
   request: jest.fn(data => data),
 })
 
-const config: AxiosRestConfig = {
-  defaultResourcesActions: {
+const config = {
+  globalResourceActions: {
+    ...CRUDActions,
     exist: {
-      uri: id => `${id}/exist`,
+      uri: (id: any) => `${id}/exist`,
       method: 'get',
-      allowDataType: ['string', 'number'],
     },
   },
   resources: {
@@ -25,12 +24,10 @@ const config: AxiosRestConfig = {
         myCustomAction: {
           uri: () => 'custom-action',
           method: 'get',
-          allowDataType: ['undefined'],
         },
         myNextCustomAction: {
-          uri: id => `${id}/next-custom-action`,
+          uri: (id: any) => `${id}/next-custom-action`,
           method: 'get',
-          allowDataType: ['string', 'number'],
         },
       },
     },
@@ -49,12 +46,14 @@ const config: AxiosRestConfig = {
 const createAPI = () => {
   const axiosInst = createAxiosInst() as any
   const api = createAxiosRest(axiosInst, config)
+  // const api = AxiosRest.create(axiosInst, config)
   return { api, axiosInst }
 }
 
 describe('createAxiosRest', () => {
   it('should generate correct resources', () => {
     const api = createAxiosRest(createAxiosInst() as any, config)
+    // const api = AxiosRest.create(createAxiosInst() as any, config)
 
     expect(typeof api.posts).toEqual('function')
     expect(typeof api.comments).toEqual('function')
@@ -66,12 +65,14 @@ describe('createAxiosRest', () => {
 
   it('should generate correct actions', () => {
     const api = createAxiosRest(createAxiosInst() as any, config)
+    // const api = AxiosRest.create(createAxiosInst() as any, config)
 
     expect(typeof api.login).toEqual('function')
   })
 
   it('should generate correct sub resources', () => {
     const api = createAxiosRest(createAxiosInst() as any, config)
+    // const api = AxiosRest.create(createAxiosInst() as any, config)
 
     expect(typeof api.posts(2).authors).toEqual('function')
     expect(typeof api.posts(2).authors().fetch).toEqual('function')
@@ -82,28 +83,20 @@ describe('createAxiosRest', () => {
 
   it('should generate correct sub actions', () => {
     const api = createAxiosRest(createAxiosInst() as any, config)
+    // const api = AxiosRest.create(createAxiosInst() as any, config)
 
     expect(typeof api.posts().myCustomAction).toEqual('function')
   })
 
-  // it("should throw error if method doesn't correspond to data", () => {
-  //   const api = createAxiosRest(createAxiosInst() as any, config)
-
-  //   expect(() => api.posts().create()).toThrow()
-  //   expect(() => api.posts().update()).toThrow()
-  //   expect(() => api.posts().delete()).toThrow()
-  //   expect(() => api.posts({}).fetch()).toThrow()
-  //   expect(() => api.posts([]).fetch()).toThrow()
-  //   expect(() => api.posts({}).exist()).toThrow()
-  // })
-
   it('should throw error with bad id', () => {
     const { api } = createAPI()
 
-    expect(() => api.posts(1).update({ id: 2, name: 'Bob' })).toThrow()
+    expect(() => api.posts(1).update({ id: 2, name: 'Bob' })).toThrow(
+      'id not match',
+    )
   })
 
-  it('should have defaultResourcesActions', () => {
+  it('should have globalResourceActions', () => {
     const { axiosInst, api } = createAPI()
 
     api.posts(6).exist()
@@ -116,6 +109,7 @@ describe('createAxiosRest', () => {
   it('should trigger axios request', () => {
     const axiosInst = createAxiosInst() as any
     const api = createAxiosRest(axiosInst, config)
+    // const api = AxiosRest.create(axiosInst, config)
     api.posts().fetch()
     api.posts(2).fetch()
     api.posts().create({})
