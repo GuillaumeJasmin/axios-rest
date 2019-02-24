@@ -2,62 +2,70 @@ import { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { createAction } from './createAction'
 import { Resource, Actions, AxiosRestConfig, ResourceInst } from './types'
 import { getDataType } from './helpers'
-import { getDefaultResourcesActions } from './getDefaultResourcesActions'
+import { defaultResourcesActions } from './defaultResourcesActions'
 
 export const createResource = (
   axiosInst: AxiosInstance,
   resource: Resource,
   actionRestConfig: AxiosRestConfig,
   rootURI: string = '',
-): ResourceInst => {
-  const fullResourceURI = `${rootURI}/${resource.uri}`
+): ResourceInst<Resource, AxiosRestConfig> => {
+  const uri = typeof resource.uri === 'function' ? resource.uri() : resource.uri
+  const fullResourceURI = `${rootURI}/${uri}`
 
   const resourcesActions: Actions = {
-    ...getDefaultResourcesActions(actionRestConfig),
+    ...defaultResourcesActions,
     ...actionRestConfig.defaultResourcesActions,
     ...resource.actions,
   }
 
-  // eslint-disable-next-line
-  return (data: any) => {
-    const dataType = getDataType(data)
-
-    const invalidAction = (actionName: string): Function => (): never => {
-      throw new Error(
-        `axios-rest: ${actionName}(data) is not available with the following data: ${JSON.stringify(
-          data,
-        )}`,
-      )
-    }
-
+  return (id?: string | number) => {
     // eslint-disable-next-line
     const output: any = {}
 
     Object.entries(resourcesActions).forEach(([actionName, action]) => {
-      output[actionName] = invalidAction(actionName)
+      output[actionName] = (
+        // eslint-disable-next-line
+        data: any,
+        localAxiosRequestConfig?: AxiosRequestConfig,
+      ) => {
+        const dataType = getDataType(data)
+        // eslint-disable-next-line
+        let finalData: any
+        let finalId: string | number = id
 
-      const { allowDataType } = action
+        if (dataType === 'object') {
+          const { [actionRestConfig.idKey]: idFromData, ...restData } = data
+          finalData = restData
 
-      if (!allowDataType || allowDataType.indexOf(dataType) !== -1) {
-        output[actionName] = (localAxiosRequestConfig?: AxiosRequestConfig) =>
-          createAction(axiosInst, action, fullResourceURI)(
-            data,
-            localAxiosRequestConfig,
-          )
+          if (idFromData !== undefined) {
+            if (
+              id !== undefined &&
+              idFromData !== undefined &&
+              id !== idFromData
+            ) {
+              throw new Error('id not match')
+            }
+
+            finalId = idFromData
+          }
+        }
+
+        return createAction(axiosInst, action, finalId, fullResourceURI)(
+          finalData,
+          localAxiosRequestConfig,
+        )
       }
     })
 
-    if (
-      resource.resources &&
-      (dataType === 'string' || dataType === 'number')
-    ) {
+    if (id !== undefined) {
       Object.entries(resource.resources).forEach(
         ([resourceName, subResource]) => {
           output[resourceName] = createResource(
             axiosInst,
             subResource,
             actionRestConfig,
-            `${fullResourceURI}/${data}`,
+            `${fullResourceURI}/${id}`,
           )
         },
       )

@@ -10,8 +10,10 @@ export type DataType =
   | number[]
   | object[]
 
+type URI = string | ((id?: string | number, data?: DataType) => string | number)
+
 export interface Action {
-  uri: string
+  uri: URI
   method: string
   allowDataType?: DataTypeStr[]
   axiosRequestConfig?: AxiosRequestConfig
@@ -22,7 +24,7 @@ export interface Actions {
 }
 
 export interface Resource {
-  uri: string
+  uri: URI
   resources?: Resources
   actions?: Actions
 }
@@ -68,27 +70,25 @@ export interface ActionInst {
   (data?: DataType, localAxiosRequestConfig?: AxiosRequestConfig): AxiosPromise
 }
 
-export interface ActionInsts {
-  [actionName: string]: ActionInst
-}
-
-export type ResourceInst = (
+export type ResourceInst<R extends Resource, C extends AxiosRestConfig> = (
   data?: DataType,
-) => ResourceActionInst | ResourceInsts
+) => ResourcesListInst<R['resources'], C> &
+  ActionsResourceInst<R['actions']> &
+  ActionsResourceInst<C['defaultResourcesActions']>
 
-export type ResourceActionInst = (
-  localAxiosRequestConfig: AxiosRequestConfig,
-) => AxiosPromise
+export type ResourcesListInst<
+  R extends Resources,
+  C extends AxiosRestConfig
+> = { [X in keyof R]: ResourceInst<R[X], C> }
 
-export interface ResourceActions {
-  [key: string]: ResourceActionInst
+export type ActionsResourceInst<A extends Actions> = {
+  [X in keyof A]: (config?: AxiosRequestConfig) => AxiosPromise
 }
 
-export interface ResourceInsts {
-  [resourceName: string]: ResourceInst
-}
+export type ActionsListInst<A extends Actions> = { [X in keyof A]: ActionInst }
 
-export interface AxiosRestInst {
-  // [resourceAPI: string]: ResourceInst | ActionInst
-  [resourceAPI: string]: Function // to improve
-}
+export type AxiosRestInst<Config extends AxiosRestConfig> = ResourcesListInst<
+  Config['resources'],
+  Config
+> &
+  ActionsListInst<Config['actions']>

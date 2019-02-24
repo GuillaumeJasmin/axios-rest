@@ -8,7 +8,7 @@ const createAxiosInst = () => ({
 const config: AxiosRestConfig = {
   defaultResourcesActions: {
     exist: {
-      uri: ':__DATA__/exist',
+      uri: id => `${id}/exist`,
       method: 'get',
       allowDataType: ['string', 'number'],
     },
@@ -23,12 +23,12 @@ const config: AxiosRestConfig = {
       },
       actions: {
         myCustomAction: {
-          uri: 'custom-action',
+          uri: () => 'custom-action',
           method: 'get',
           allowDataType: ['undefined'],
         },
         myNextCustomAction: {
-          uri: ':__DATA__/next-custom-action',
+          uri: id => `${id}/next-custom-action`,
           method: 'get',
           allowDataType: ['string', 'number'],
         },
@@ -40,10 +40,16 @@ const config: AxiosRestConfig = {
   },
   actions: {
     login: {
-      uri: 'login',
+      uri: () => 'login',
       method: 'post',
     },
   },
+}
+
+const createAPI = () => {
+  const axiosInst = createAxiosInst() as any
+  const api = createAxiosRest(axiosInst, config)
+  return { api, axiosInst }
 }
 
 describe('createAxiosRest', () => {
@@ -80,20 +86,25 @@ describe('createAxiosRest', () => {
     expect(typeof api.posts().myCustomAction).toEqual('function')
   })
 
-  it("should throw error if method doesn't correspond to data", () => {
-    const api = createAxiosRest(createAxiosInst() as any, config)
+  // it("should throw error if method doesn't correspond to data", () => {
+  //   const api = createAxiosRest(createAxiosInst() as any, config)
 
-    expect(() => api.posts().create()).toThrow()
-    expect(() => api.posts().update()).toThrow()
-    expect(() => api.posts().delete()).toThrow()
-    expect(() => api.posts({}).fetch()).toThrow()
-    expect(() => api.posts([]).fetch()).toThrow()
-    expect(() => api.posts({}).exist()).toThrow()
+  //   expect(() => api.posts().create()).toThrow()
+  //   expect(() => api.posts().update()).toThrow()
+  //   expect(() => api.posts().delete()).toThrow()
+  //   expect(() => api.posts({}).fetch()).toThrow()
+  //   expect(() => api.posts([]).fetch()).toThrow()
+  //   expect(() => api.posts({}).exist()).toThrow()
+  // })
+
+  it('should throw error with bad id', () => {
+    const { api } = createAPI()
+
+    expect(() => api.posts(1).update({ id: 2, name: 'Bob' })).toThrow()
   })
 
   it('should have defaultResourcesActions', () => {
-    const axiosInst = createAxiosInst() as any
-    const api = createAxiosRest(axiosInst, config)
+    const { axiosInst, api } = createAPI()
 
     api.posts(6).exist()
     expect(axiosInst.request).toHaveReturnedWith({
@@ -107,30 +118,37 @@ describe('createAxiosRest', () => {
     const api = createAxiosRest(axiosInst, config)
     api.posts().fetch()
     api.posts(2).fetch()
-    api.posts({}).create()
-    api.posts({ id: '...' }).update()
+    api.posts().create({})
+    api.posts().update({ id: '...' })
     api.posts(2).delete()
     api.login()
     expect(axiosInst.request).toHaveBeenCalledTimes(6)
   })
 
-  it('should trigger axios request with good params', () => {
-    const axiosInst = createAxiosInst() as any
-    const api = createAxiosRest(axiosInst, config)
+  it('should trigger axios request: fetch all ', () => {
+    const { axiosInst, api } = createAPI()
 
     api.posts().fetch()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
       url: '/posts',
     })
+  })
+
+  it('should trigger axios request: fetch one', () => {
+    const { axiosInst, api } = createAPI()
 
     api.posts(1).fetch()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
       url: '/posts/1',
     })
+  })
 
-    api.posts({ name: 'Bob' }).create()
+  it('should trigger axios request: create', () => {
+    const { axiosInst, api } = createAPI()
+
+    api.posts().create({ name: 'Bob' })
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'post',
       url: '/posts',
@@ -138,8 +156,12 @@ describe('createAxiosRest', () => {
         name: 'Bob',
       },
     })
+  })
 
-    api.posts({ id: 1, name: 'Bob' }).update()
+  it('should trigger axios request: update', () => {
+    const { axiosInst, api } = createAPI()
+
+    api.posts().update({ id: 1, name: 'Bob' })
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'patch',
       url: '/posts/1',
@@ -147,12 +169,33 @@ describe('createAxiosRest', () => {
         name: 'Bob',
       },
     })
+  })
+
+  it('should trigger axios request: update', () => {
+    const { axiosInst, api } = createAPI()
+
+    api.posts(2).update({ name: 'Max' })
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'patch',
+      url: '/posts/2',
+      data: {
+        name: 'Max',
+      },
+    })
+  })
+
+  it('should trigger axios request: delete', () => {
+    const { axiosInst, api } = createAPI()
 
     api.posts(1).delete()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'delete',
       url: '/posts/1',
     })
+  })
+
+  it('should trigger axios request: fetch sub resources', () => {
+    const { axiosInst, api } = createAPI()
 
     api
       .posts(1)
@@ -162,12 +205,20 @@ describe('createAxiosRest', () => {
       method: 'get',
       url: '/posts/1/authors',
     })
+  })
+
+  it('should trigger axios request: custom action without id', () => {
+    const { axiosInst, api } = createAPI()
 
     api.posts().myCustomAction()
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
       url: '/posts/custom-action',
     })
+  })
+
+  it('should trigger axios request: custom action with id', () => {
+    const { axiosInst, api } = createAPI()
 
     api.posts(1).myNextCustomAction()
     expect(axiosInst.request).toHaveReturnedWith({
