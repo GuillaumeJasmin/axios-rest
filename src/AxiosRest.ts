@@ -7,8 +7,7 @@ import {
   ActionConfig,
   ActionInst,
   ListActionsConfig,
-  DataType,
-  ID,
+  ResourceID,
 } from './types'
 import { getDataType } from './helpers'
 
@@ -60,25 +59,26 @@ export class AxiosRest<AI extends AxiosInstance, ARC extends AxiosRestConfig> {
     resource: ResourceConfig,
     rootURI: string = '',
   ): ResourceInst<ResourceConfig, ARC> => {
-    const uri =
-      typeof resource.uri === 'function' ? resource.uri() : resource.uri
-    const fullResourceURI = `${rootURI}/${uri}`
+    const { url } = resource
+    const fullResourceURI = `${rootURI}${url}`
 
     const resourcesActions: ListActionsConfig = {
       ...this.config.globalResourceActions,
       ...resource.actions,
     }
 
-    return (id?: ID) => {
+    return (id?: ResourceID) => {
       // eslint-disable-next-line
       const output: any = {}
 
       Object.entries(resourcesActions).forEach(([actionName, action]) => {
         output[actionName] = (
-          // eslint-disable-next-line
-          data: any,
-          localAxiosRequestConfig?: AxiosRequestConfig,
+          localAxiosRequestConfig: AxiosRequestConfig = {},
         ) => {
+          const {
+            data,
+            ...restLocalAxiosRequestConfig
+          } = localAxiosRequestConfig
           const dataType = getDataType(data)
           let finalData: typeof data
           let finalId: string | number = id
@@ -100,10 +100,12 @@ export class AxiosRest<AI extends AxiosInstance, ARC extends AxiosRestConfig> {
             }
           }
 
-          return this.createAction(action, finalId, fullResourceURI)(
-            finalData,
-            localAxiosRequestConfig,
-          )
+          const config: AxiosRequestConfig = restLocalAxiosRequestConfig
+          if (finalData) {
+            config.data = finalData
+          }
+
+          return this.createAction(action, finalId, fullResourceURI)(config)
         }
       })
 
@@ -124,23 +126,17 @@ export class AxiosRest<AI extends AxiosInstance, ARC extends AxiosRestConfig> {
 
   private createAction = (
     action: ActionConfig,
-    id?: ID,
+    id?: ResourceID,
     rootURI: string = '',
   ): ActionInst => {
-    return (data?: DataType, localAxiosRequestConfig?: AxiosRequestConfig) => {
-      // prettier-ignore
-      const uri = typeof action.uri === 'function'
-        ? action.uri(id, data)
-        : action.uri
-
-      const baseURL = uri ? `${rootURI}/${uri}` : rootURI
+    return (axiosRequestConfig: AxiosRequestConfig = {}) => {
+      const { url, ...actionRest } =
+        typeof action === 'function' ? action(id, axiosRequestConfig) : action
 
       const requestConfig: AxiosRequestConfig = {
-        method: action.method,
-        url: baseURL,
-        data,
-        ...action.axiosRequestConfig,
-        ...localAxiosRequestConfig,
+        url: `${rootURI}${url}`,
+        ...actionRest,
+        ...axiosRequestConfig,
       }
 
       return this.axiosInst.request(requestConfig)

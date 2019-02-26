@@ -1,20 +1,20 @@
-import { ID } from './types'
+import { ResourceID } from './types'
 
 export const CRUDActions = {
-  fetch: {
-    uri: (id?: ID) => (id !== undefined ? `${id}` : ''),
+  fetch: (id: ResourceID) => ({
+    url: id !== undefined ? `/${id}` : '',
     method: 'get',
-  },
-  create: {
-    uri: () => '',
+  }),
+  create: () => ({
+    url: '',
     method: 'post',
-  },
-  update: {
-    uri: (id?: ID) => `${id}`,
+  }),
+  update: (id?: ResourceID) => ({
+    url: `/${id}`,
     method: 'patch',
-  },
-  delete: {
-    uri: (id: ID) => `${id}`,
+  }),
+  delete: (id: ResourceID) => ({
+    url: `/${id}`,
     method: 'delete',
-  },
+  }),
 }

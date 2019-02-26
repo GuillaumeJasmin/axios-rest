@@ -1,43 +1,44 @@
 import { createAxiosRest, CRUDActions } from '../src/index'
 
 const createAxiosInst = () => ({
+  baseURL: 'http://website.com',
   request: jest.fn(data => data),
 })
 
 const config = {
   globalResourceActions: {
     ...CRUDActions,
-    exist: {
-      uri: (id: any) => `${id}/exist`,
+    exist: (id: any) => ({
+      url: `/${id}/exist`,
       method: 'get',
-    },
+    }),
   },
   resources: {
     posts: {
-      uri: 'posts',
+      url: '/posts',
       resources: {
         authors: {
-          uri: 'authors',
+          url: '/authors',
         },
       },
       actions: {
         myCustomAction: {
-          uri: () => 'custom-action',
+          url: '/custom-action',
           method: 'get',
         },
-        myNextCustomAction: {
-          uri: (id: any) => `${id}/next-custom-action`,
+        myNextCustomAction: (id: any) => ({
+          url: `/${id}/next-custom-action`,
           method: 'get',
-        },
+        }),
       },
     },
     comments: {
-      uri: 'comments',
+      url: '/comments',
     },
   },
   actions: {
     login: {
-      uri: () => 'login',
+      url: '/login',
       method: 'post',
     },
   },
@@ -91,7 +92,7 @@ describe('createAxiosRest', () => {
   it('should throw error with bad id', () => {
     const { api } = createAPI()
 
-    expect(() => api.posts(1).update({ id: 2, name: 'Bob' })).toThrow(
+    expect(() => api.posts(1).update({ data: { id: 2, name: 'Bob' } })).toThrow(
       'id not match',
     )
   })
@@ -113,7 +114,7 @@ describe('createAxiosRest', () => {
     api.posts().fetch()
     api.posts(2).fetch()
     api.posts().create({})
-    api.posts().update({ id: '...' })
+    api.posts().update({ data: { id: '...' } })
     api.posts(2).delete()
     api.login()
     expect(axiosInst.request).toHaveBeenCalledTimes(6)
@@ -142,7 +143,7 @@ describe('createAxiosRest', () => {
   it('should trigger axios request: create', () => {
     const { axiosInst, api } = createAPI()
 
-    api.posts().create({ name: 'Bob' })
+    api.posts().create({ data: { name: 'Bob' } })
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'post',
       url: '/posts',
@@ -155,7 +156,7 @@ describe('createAxiosRest', () => {
   it('should trigger axios request: update', () => {
     const { axiosInst, api } = createAPI()
 
-    api.posts().update({ id: 1, name: 'Bob' })
+    api.posts().update({ data: { id: 1, name: 'Bob' } })
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'patch',
       url: '/posts/1',
@@ -168,7 +169,7 @@ describe('createAxiosRest', () => {
   it('should trigger axios request: update', () => {
     const { axiosInst, api } = createAPI()
 
-    api.posts(2).update({ name: 'Max' })
+    api.posts(2).update({ data: { name: 'Max' } })
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'patch',
       url: '/posts/2',

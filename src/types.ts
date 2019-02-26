@@ -10,22 +10,20 @@ export type DataType =
   | number[]
   | object[]
 
-export type ID = string | number
+export type ResourceID = string | number
 
-type URI = string | ((id?: ID, data?: DataType) => string)
+// type URI = string | ((id?: ID, data?: DataType) => string)
 
-export interface ActionConfig {
-  uri: URI
-  method: string
-  axiosRequestConfig?: AxiosRequestConfig
-}
+export type ActionConfig =
+  | ((id: ResourceID, data?: AxiosRequestConfig['data']) => AxiosRequestConfig)
+  | AxiosRequestConfig
 
 export interface ListActionsConfig {
   [actionName: string]: ActionConfig
 }
 
 export interface ResourceConfig {
-  uri: URI
+  url: string
   resources?: ListResourcesConfig
   actions?: ListActionsConfig
 }
@@ -42,14 +40,14 @@ export interface AxiosRestConfig {
 }
 
 export interface ActionInst {
-  (data?: DataType, localAxiosRequestConfig?: AxiosRequestConfig): AxiosPromise
+  (axiosRequestConfig?: AxiosRequestConfig): AxiosPromise
 }
 
 export type ResourceInst<
   R extends ResourceConfig,
   C extends AxiosRestConfig
 > = (
-  id?: ID,
+  id?: ResourceID,
 ) => ListResourcesInst<R['resources'], C> &
   ListActionsInst<R['actions']> &
   ListActionsInst<C['globalResourceActions']>
