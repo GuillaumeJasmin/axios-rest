@@ -35,13 +35,13 @@ The most common resource actions are CRUD methods: `fetch`, `create`, `update` a
 
 Example of `posts` resource:
 
-| method      | URL        | description    | Axios Rest                                    |
-| :---------- | :--------- | :------------- | --------------------------------------------- |
-| GET         | `/posts`   | fetch all post | `api.posts().fetch()`                         |
-| GET         | `/posts/1` | fetch one post | `api.posts(1).fetch()`                        |
-| POST        | `/posts`   | create post    | `api.posts().create({ title: 'foo' })`        |
-| PATCH / PUT | `/posts/1` | update post    | `api.posts().update({ id: 1, title: 'bar' })` |
-| DELETE      | `/posts/1` | delete post    | `api.posts(1).delete()`                       |
+| method      | URL        | description    | Axios Rest                                              |
+| :---------- | :--------- | :------------- | ------------------------------------------------------- |
+| GET         | `/posts`   | fetch all post | `api.posts().fetch()`                                   |
+| GET         | `/posts/1` | fetch one post | `api.posts(1).fetch()`                                  |
+| POST        | `/posts`   | create post    | `api.posts().create({ data: { title: 'foo' } })`        |
+| PATCH / PUT | `/posts/1` | update post    | `api.posts().update({ { data: id: 1, title: 'bar' } })` |
+| DELETE      | `/posts/1` | delete post    | `api.posts(1).delete()`                                 |
 
 ## Custom actions
 
@@ -54,19 +54,19 @@ A resource can also have custom actions only available for this resource:
 
 A resource can have sub resources
 
-| method | URL                 | description                 | Axios Rest                                        |
-| :----- | :------------------ | :-------------------------- | ------------------------------------------------- |
-| GET    | `/posts/1/comments` | fetch all comment of post 1 | `api.posts(1).comments().fetch()`                 |
-| POST   | `/posts/1/comments` | create a comment of post 1  | `api.posts(1).comments().create({ text: '...' })` |
+| method | URL                 | description                 | Axios Rest                                                  |
+| :----- | :------------------ | :-------------------------- | ----------------------------------------------------------- |
+| GET    | `/posts/1/comments` | fetch all comment of post 1 | `api.posts(1).comments().fetch()`                           |
+| POST   | `/posts/1/comments` | create a comment of post 1  | `api.posts(1).comments().create({ data: { text: '...' } })` |
 
 # What is an action ?
 
 An action is a single endpoint. The most common action is `login`
 
-| method | URL       | description             | Axios Rest                                        |
-| :----- | :-------- | :---------------------- | ------------------------------------------------- |
-| POST   | `/login`  | login to admin panel    | `api.login({ username: '...', password: '...' })` |
-| POST   | `/logout` | logout from admin panel | `api.logout()`                                    |
+| method | URL       | description             | Axios Rest                                                  |
+| :----- | :-------- | :---------------------- | ----------------------------------------------------------- |
+| POST   | `/login`  | login to admin panel    | `api.login({ data: { username: '...', password: '...' } })` |
+| POST   | `/logout` | logout from admin panel | `api.logout()`                                              |
 
 # createAxiosRest(axiosInst, config)
 
@@ -78,44 +78,43 @@ An action is a single endpoint. The most common action is `login`
 
 ## Config
 
-- `idKey` - string - optional. Default `id`
-- `resources` - object - optional - list of resources
+```js
+{
+  idKey: 'id',
+  resources: undefined,
+  actions: undefined,
+  globalResourceActions: undefined // Actions available for all resources
+}
+```
 
-  ```js
-  {
-    // resource URI
-    uri: '',
-    // or
-    uri: (id, data) => '',
+## Config resources
 
-    // sub resources
-    resources: {},
-
-    // sub actions
-    actions: {},
+```js
+{
+  [resourceName]: {
+    url: '',
+    resources: undefined // sub resources
+    actions: undefined
   }
-  ```
+}
+```
 
-- `actions` - object - optional - list of actions
+## Config actions
 
-  ```js
-  {
-    // action URI
-    uri: '',
-    // or
-    uri: (id, data) => '',
-
-    // Axios method property
-    method: 'POST',
-
-    // optional.
-    // see https://github.com/axios/axios#request-config
-    axiosRequestConfig: {}
+```js
+{
+  [actionName]: {
+    // axios request config
   }
-  ```
+}
 
-- `globalResourceActions` - object -
-  Actions available for all resources
+// or if you need to get resource id
+{
+  [actionName]: (id, data) => ({
+    // axios request config
+  })
+}
+```
 
 # Examples
 
@@ -133,34 +132,34 @@ const config = {
   globalResourceActions: CRUDActions, // use can use predefined CRUD action or build yours
   resources: {
     posts: {
-      uri: 'posts',
+      url: '/posts',
       resources: {
         comments: {
-          uri: 'comments',
+          url: '/comments',
         },
       },
     },
     comments: {
-      uri: 'comments',
+      url: '/comments',
       actions: {
-        like: {
-          uri: id => `${id}/like`,
+        like: id => ({
+          url: `/${id}/like`,
           method: 'POST',
-        },
-        unlike: {
-          uri: id => `${id}/unlike`,
+        }),
+        unlike: id => ({
+          url: `/${id}/unlike`,
           method: 'POST',
-        },
+        }),
       },
     },
   },
   actions: {
     login: {
-      uri: 'login',
+      url: '/login',
       method: 'POST',
     },
     logout: {
-      uri: 'logout',
+      url: '/logout',
       method: 'POST',
     },
   },
@@ -184,15 +183,15 @@ api
 api.posts(1).fetch()
 
 // POST /posts
-api.posts().create({ title: '...' })
+api.posts().create({ data: { title: '...' } })
 
 // PATCH /posts/1
-api.posts().update({ id: 1, title: '...' })
+api.posts().update({ data: { id: 1, title: '...' } })
 // or
-api.posts(1).update({ title: '...' })
+api.posts(1).update({ data: { title: '...' } })
 
 // PUT /posts/1
-api.posts().update({ id: 1, title: '...' }, { method: 'put' })
+api.posts().update({ data: { id: 1, title: '...' }, method: 'put' })
 
 // DELETE /posts/1
 api.posts(1).delete()
@@ -201,7 +200,7 @@ api.posts(1).delete()
 ### Actions
 
 ```js
-api.login({ email: '...', password: '...' }).then(res => {
+api.login({ data: { email: '...', password: '...' } }).then(res => {
   // success login
 })
 ```
@@ -219,7 +218,7 @@ api
 api
   .posts(1)
   .comments()
-  .create({ author: '...', text: 'Amazing article !' })
+  .create({ data: { author: '...', text: 'Amazing article !' } })
 
 // POST /comments/1/like
 api.comments(1).like()
@@ -229,16 +228,16 @@ api.comments(1).like()
 
 ```js
 const config = {
-  actions: (
-    myAction: {
-      uri: (id, data) => `custom-action/${data.postId}/${data.commentId}`
-    }
-  )
+  actions: {
+    myAction: (id, data) => ({
+      url: `custom-action/${data.postId}/${data.commentId}`,
+    }),
+  },
 }
 
-...
+// ...
 
-api.myAction({ postId: '', commentId: '' })
+api.myAction({ data: { postId: '', commentId: '' } })
 ```
 
 - _Note_: `id` is unused here, because it's an action. Id can only be used with resource: `api.posts(id).anotherAction()`
@@ -252,29 +251,27 @@ You have 2 ways to set axios config for an action:
 
 ```js
 const config = {
-  actions: (
+  actions: {
     myAction: {
-      uri: 'custom-action',
+      url: 'custom-action',
       method: 'GET',
-      axiosRequestConfig: {
-        headers: {
-          X_CUSTOM_HEADER_NAME: 'foo'
-        },
-        params: {
-          page: 1
-        }
-      }
-    }
-  )
+      headers: {
+        X_CUSTOM_HEADER: 'foo',
+      },
+      params: {
+        page: 1,
+      },
+    },
+  },
 }
 
-...
+// ...
 
 // GET /custom-action&page=1
-// with header X_CUSTOM_HEADER_NAME
+// with header X_CUSTOM_HEADER
 api.myAction()
 
 // GET /custom-action&page=2&lang=en
-// with header X_CUSTOM_HEADER_NAME
-api.myAction(null, { params: { page: 2, lang: 'en' } })
+// with header X_CUSTOM_HEADER
+api.myAction({ params: { page: 2, lang: 'en' } })
 ```
