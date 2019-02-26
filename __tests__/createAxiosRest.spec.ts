@@ -41,6 +41,11 @@ const config = {
       url: '/login',
       method: 'post',
     },
+    customAction: (id: any, { data: { arg1, arg2 } }: any): any => ({
+      url: `/customAction/${arg1}/${arg2}`,
+      method: 'post',
+      data: undefined,
+    }),
   },
 }
 
@@ -219,6 +224,16 @@ describe('createAxiosRest', () => {
     expect(axiosInst.request).toHaveReturnedWith({
       method: 'get',
       url: '/posts/1/next-custom-action',
+    })
+  })
+
+  it('should trigger axios request: custom action with multiple params', () => {
+    const { axiosInst, api } = createAPI()
+
+    api.customAction({ data: { arg1: 'a', arg2: 'b' } })
+    expect(axiosInst.request).toHaveReturnedWith({
+      method: 'post',
+      url: '/customAction/a/b',
     })
   })
 })

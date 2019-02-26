@@ -135,8 +135,8 @@ export class AxiosRest<AI extends AxiosInstance, ARC extends AxiosRestConfig> {
 
       const requestConfig: AxiosRequestConfig = {
         url: `${rootURI}${url}`,
-        ...actionRest,
         ...axiosRequestConfig,
+        ...actionRest,
       }
 
       return this.axiosInst.request(requestConfig)
