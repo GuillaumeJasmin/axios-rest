@@ -107,7 +107,7 @@ export class AxiosRest<AI extends AxiosInstance, ARC extends AxiosRestConfig> {
         }
       })
 
-      if (id !== undefined) {
+      if (resource.resources && id !== undefined) {
         Object.entries(resource.resources).forEach(
           ([resourceName, subResource]) => {
             output[resourceName] = this.createResource(
