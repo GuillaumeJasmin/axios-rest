@@ -20,7 +20,7 @@ Build resources and actions for [axios](https://github.com/axios/axios)
 # Install
 
 ```bash
-npm install axios-rest --save
+npm install @guillaumejasmin/axios-rest --save
 ```
 
 # What is a resource ?
